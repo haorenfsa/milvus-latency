@@ -11,8 +11,7 @@ import (
 )
 
 const (
-	collectionName = "hello_milvus"
-	msgFmt         = "==== %s ====\n"
+	msgFmt = "==== %s ====\n"
 )
 
 func main() {
@@ -20,6 +19,7 @@ func main() {
 	user := flag.String("user", "", "milvus user")
 	pass := flag.String("pass", "", "milvus password")
 	requests := flag.Int("reqs", 1000, "number of requests to test")
+	collectionName := flag.String("collection", "hello_milvus", "collection name")
 	flag.Parse()
 	ctx := context.Background()
 	fmt.Printf(msgFmt, "start connecting to Milvus")
@@ -32,15 +32,17 @@ func main() {
 
 	// check whether collection if exists
 	fmt.Printf("sending simple requests to Milvus %d times\n", *requests)
-	t := time.Now()
+	var totalDuration time.Duration
 	for i := 0; i < *requests; i++ {
-		_, err = c.HasCollection(ctx, collectionName)
+		startTime := time.Now()
+		_, err = c.HasCollection(ctx, *collectionName)
 		if err != nil {
 			break
 		}
+		totalDuration += time.Since(startTime)
 	}
 	if err != nil {
 		log.Fatalf("failed to check collection, err: %v", err)
 	}
-	fmt.Printf("avg simple request latency: %v\n", time.Since(t)/time.Duration(*requests))
+	fmt.Printf("avg simple request latency: %v\n", totalDuration/time.Duration(*requests))
 }
